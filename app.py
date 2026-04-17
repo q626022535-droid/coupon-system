@@ -11,8 +11,9 @@ from pymongo import MongoClient
 from bson import ObjectId
 
 # MongoDB 连接配置
-MONGO_URI = os.getenv("MONGO_URI", "")
-DB_NAME = os.getenv("DB_NAME", "coupon_system")
+MONGO_URI = os.getenv("MONGO_URI") or st.secrets.get("MONGO_URI", "")
+DB_NAME = os.getenv("DB_NAME") or st.secrets.get("DB_NAME", "coupon_system")
+
 
 _client = None
 
