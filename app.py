@@ -11,8 +11,10 @@ from pymongo import MongoClient
 from bson import ObjectId
 
 # MongoDB 连接配置
-MONGO_URI = os.getenv("MONGO_URI") or st.secrets.get("MONGO_URI", "")
+MONGO_URI = "mongodb://admin:lyn050227@ac-raicbr6-shard-00-00.drkdhrz.mongodb.net:27017,ac-raicbr6-shard-00-01.drkdhrz.mongodb.net:27017,ac-raicbr6-shard-00-02.drkdhrz.mongodb.net:27017/coupon_system?ssl=true&replicaSet=atlas-6yi953-shard-0&authSource=admin&appName=Cluster0"
+
 DB_NAME = os.getenv("DB_NAME") or st.secrets.get("DB_NAME", "coupon_system")
+
 
 
 _client = None
