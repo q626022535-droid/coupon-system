@@ -10,7 +10,8 @@ from pymongo import MongoClient
 from bson import ObjectId
 
 # MongoDB 连接配置
-MONGO_URI = "mongodb://admin:lyn050227@cluster0-shard-00-00.drkdhrz.mongodb.net:27017,cluster0-shard-00-01.drkdhrz.mongodb.net:27017,cluster0-shard-00-02.drkdhrz.mongodb.net:27017/coupon_system?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin"
+MONGO_URI = "mongodb://admin:lyn050227@cluster0-shard-00-00.drkdrz.mongodb.net:27017,cluster0-shard-00-01.drkdrz.mongodb.net:27017,cluster0-shard-00-02.drkdrz.mongodb.net:27017/coupon_system?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin"
+
 DB_NAME = "coupon_system"
 
 _client = None
