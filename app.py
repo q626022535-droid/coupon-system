@@ -11,44 +11,43 @@ from pymongo import MongoClient
 from bson import ObjectId
 
 # MongoDB 连接配置 - 支持环境变量和 Streamlit secrets
-# CloudBase 环境变量优先
-# ========== MongoDB 连接配置 ==========
-# 只用环境变量，完全忽略 st.secrets（避免缓存问题）
-MONGO_URI = os.environ.get("MONGO_URI", "")
-
-# DEBUG: 显示长度和前50字符
-st.write(f"DEBUG: 长度={len(MONGO_URI)}, 前缀={MONGO_URI[:50]}")
-
-if not MONGO_URI:
-    st.error("❌ 未设置 MONGO_URI 环境变量")
-    st.stop()
-
-if MONGO_URI.startswith("mongodb+srv://"):
-    st.error("❌ 错误：使用的是 SRV 连接字符串")
-    st.stop()
-
-
-# 检查是否是 SRV 格式
-if MONGO_URI.startswith("mongodb+srv://"):
-    st.error("❌ 错误：使用的是 SRV 连接字符串")
-    st.info("CloudBase 不支持 SRV 格式，请使用标准连接字符串")
-    st.stop()
-
+MONGO_URI = os.environ.get("MONGO_URI") or st.secrets.get("MONGO_URI", "")
 DB_NAME = os.environ.get("DB_NAME") or st.secrets.get("DB_NAME", "coupon_system")
-
 
 _client = None
 
 def get_db():
-    """获取 MongoDB 数据库连接"""
+    """获取 MongoDB 数据库连接 - 支持 SRV 和标准连接字符串"""
     global _client
     if _client is None:
         if not MONGO_URI:
             st.error("❌ 错误：未设置 MONGO_URI 环境变量")
+            st.info("请在 CloudBase 控制台 → 服务管理 → 环境变量中添加 MONGO_URI")
             raise ValueError("MONGO_URI not configured")
-        _client = MongoClient(MONGO_URI, connect=False, serverSelectionTimeoutMS=30000)
+        
+        # 判断连接字符串类型
+        is_srv = MONGO_URI.startswith("mongodb+srv://")
+        
+        # 构建连接选项
+        client_options = {
+            "connect": False,  # 延迟连接
+            "serverSelectionTimeoutMS": 30000,
+            "connectTimeoutMS": 30000,
+            "socketTimeoutMS": 30000,
+            "retryWrites": True,
+        }
+        
+        # SRV 连接在某些容器环境（如 CloudBase）可能有 DNS 问题
+        # 如果是 SRV 且连接失败，提示用户使用标准连接字符串
+        try:
+            _client = MongoClient(MONGO_URI, **client_options)
+        except Exception as e:
+            if is_srv and "DNS" in str(e):
+                st.error("❌ MongoDB SRV 连接失败（DNS 解析问题）")
+                st.info("💡 解决方案：去 MongoDB Atlas 获取标准连接字符串（mongodb:// 开头）")
+                st.code("""mongodb://admin:密码@cluster0-shard-00-00.drkdhrz.mongodb.net:27017,...""", language="text")
+            raise
     return _client[DB_NAME]
-
 
 def init_db():
     """初始化数据库 - 创建索引和默认管理员"""
