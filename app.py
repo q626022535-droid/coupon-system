@@ -13,13 +13,20 @@ from bson import ObjectId
 # MongoDB 连接配置 - 支持环境变量和 Streamlit secrets
 # CloudBase 环境变量优先
 # ========== MongoDB 连接配置 ==========
-# DEBUG: 显示环境变量状态（调试用，确认后删除）
-env_uri = os.environ.get("MONGO_URI", "")
-secrets_uri = st.secrets.get("MONGO_URI", "")
-st.write(f"DEBUG: 环境变量长度={len(env_uri)}, secrets长度={len(secrets_uri)}")
+# 只用环境变量，完全忽略 st.secrets（避免缓存问题）
+MONGO_URI = os.environ.get("MONGO_URI", "")
 
-# 强制使用环境变量
-MONGO_URI = env_uri if env_uri else secrets_uri
+# DEBUG: 显示长度和前50字符
+st.write(f"DEBUG: 长度={len(MONGO_URI)}, 前缀={MONGO_URI[:50]}")
+
+if not MONGO_URI:
+    st.error("❌ 未设置 MONGO_URI 环境变量")
+    st.stop()
+
+if MONGO_URI.startswith("mongodb+srv://"):
+    st.error("❌ 错误：使用的是 SRV 连接字符串")
+    st.stop()
+
 
 # 检查是否是 SRV 格式
 if MONGO_URI.startswith("mongodb+srv://"):
