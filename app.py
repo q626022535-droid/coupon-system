@@ -40,37 +40,15 @@ DB_NAME = os.environ.get("DB_NAME") or st.secrets.get("DB_NAME", "coupon_system"
 _client = None
 
 def get_db():
-    """获取 MongoDB 数据库连接 - 支持 SRV 和标准连接字符串"""
+    """获取 MongoDB 数据库连接"""
     global _client
     if _client is None:
         if not MONGO_URI:
             st.error("❌ 错误：未设置 MONGO_URI 环境变量")
-            st.info("请在 CloudBase 控制台 → 服务管理 → 环境变量中添加 MONGO_URI")
             raise ValueError("MONGO_URI not configured")
-        
-        # 判断连接字符串类型
-        is_srv = MONGO_URI.startswith("mongodb+srv://")
-        
-        # 构建连接选项
-        client_options = {
-            "connect": False,  # 延迟连接
-            "serverSelectionTimeoutMS": 30000,
-            "connectTimeoutMS": 30000,
-            "socketTimeoutMS": 30000,
-            "retryWrites": True,
-        }
-        
-        # SRV 连接在某些容器环境（如 CloudBase）可能有 DNS 问题
-        # 如果是 SRV 且连接失败，提示用户使用标准连接字符串
-        try:
-            _client = MongoClient(MONGO_URI, **client_options)
-        except Exception as e:
-            if is_srv and "DNS" in str(e):
-                st.error("❌ MongoDB SRV 连接失败（DNS 解析问题）")
-                st.info("💡 解决方案：去 MongoDB Atlas 获取标准连接字符串（mongodb:// 开头）")
-                st.code("""mongodb://admin:密码@cluster0-shard-00-00.drkdhrz.mongodb.net:27017,...""", language="text")
-            raise
+        _client = MongoClient(MONGO_URI, connect=False, serverSelectionTimeoutMS=30000)
     return _client[DB_NAME]
+
 
 def init_db():
     """初始化数据库 - 创建索引和默认管理员"""
