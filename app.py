@@ -11,8 +11,8 @@ from pymongo import MongoClient
 from bson import ObjectId
 
 # MongoDB 连接配置 - 支持环境变量和 Streamlit secrets
-MONGO_URI = os.environ.get("MONGO_URI") or st.secrets.get("MONGO_URI", "")
-DB_NAME = os.environ.get("DB_NAME") or st.secrets.get("DB_NAME", "coupon_system")
+MONGO_URI = os.environ.get("MONGO_URI", "")
+DB_NAME = os.environ.get("DB_NAME", "coupon_system")
 
 _client = None
 
